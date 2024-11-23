@@ -1,0 +1,58 @@
+# Partie Serveur REST API
+
+# Virtual environment
+serveur_rest_api/venv/
+serveur_rest_api/.env
+
+# Compiled Python files
+serveur_rest_api/__pycache__/
+serveur_rest_api/*.pyc
+serveur_rest_api/*.pyo
+
+# Logs
+serveur_rest_api/*.logs
+
+# System-specific files
+serveur_rest_api/.DS_Store
+serveur_rest_api/Thumbs.db
+
+# other
+serveur_rest_api/instance/
+
+# Partie Web Mobile
+
+
+# dependencies
+web_mobile/node_modules/
+
+# Expo
+web_mobile/.expo/
+web_mobile/dist/
+web_mobile/web-build/
+web_mobile/expo-env.d.ts
+
+# Native
+web_mobile/*.orig.*
+web_mobile/*.jks
+web_mobile/*.p8
+web_mobile/*.p12
+web_mobile/*.key
+web_mobile/*.mobileprovision
+
+# Metro
+web_mobile/.metro-health-check*
+
+# debug
+web_mobile/npm-debug.*
+web_mobile/yarn-debug.*
+web_mobile/yarn-error.*
+
+# macOS
+web_mobile/.DS_Store
+web_mobile/*.pem
+
+# local env files
+web_mobile/.env*.local
+
+# typescript
+web_mobile/*.tsbuildinfo
