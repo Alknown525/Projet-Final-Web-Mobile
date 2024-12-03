@@ -3,7 +3,7 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from app.extensions import db
 
 # Activer la ligne c-dessous lorsque le modele est cree
-from app.modeles import Publication, Utilisateur
+from app.modeles import Publication, Utilisateur, suivis
 from app.api import api_bp
 
 # Creer les routes d'authentifications
@@ -16,19 +16,18 @@ def demander_jeton():
     utilisateur = Utilisateur.query.filter_by(courriel=data["courriel"]).first()
 
     # valider le mot de passe
-    if not utilisateur or not utilisateur.valide_mot_passe(data["mot_passe"]):
-        return jsonify({"erreur": "Donnees d'authentifcation invalides"})
+    if not utilisateur or not utilisateur.valide_mot_passe(data["password"]):
+        return jsonify({"erreur": "Donnees d'authentifcation invalides"}), 401
 
     # l'utilisateur est authentifie, creer le jwt
     jeton = create_access_token(identity=utilisateur.id)
 
-    return jsonify({"jeton": jeton}), 201
+    return jsonify({"jeton": jeton, "username": utilisateur.nom, "userId": utilisateur.id}), 201
 
 
 # Creer les routes pour les operations CRUD
 
 @api_bp.route("/", methods=["GET"])
-@jwt_required()
 def accueil():
 
     id = get_jwt_identity()
@@ -36,21 +35,19 @@ def accueil():
 
     utilisateur = Utilisateur.query.get(id)
 
-    return {"nom": utilisateur.nom, "courriel": utilisateur.courriel}
+    return {utilisateur.id}
 
 
 
 @api_bp.route("/utilisateur/<int:id>", methods=["GET"])
-@jwt_required()
 def get_utilisateur(id):
-    current_user_id = get_jwt_identity()
     user = Utilisateur.query.get(id)
     
     if not user:
         return jsonify({"message": "Utilisateur non trouvé"}), 404
 
-    followers_count = len(user.followers)
-
+    followers_count = db.session.query(suivis).filter(suivis.c.utilisateur_suivi == user.id).count()
+    
     return jsonify({
         "id": user.id,
         "nom": user.nom,
@@ -60,9 +57,7 @@ def get_utilisateur(id):
 
 
 @api_bp.route("/utilisateur", methods=["GET"])
-@jwt_required()
 def liste_utilisateurs():
-    current_user_id = get_jwt_identity()
     utilisateurs = Utilisateur.query.all()
     liste_utilisateurs = [
         {
@@ -124,11 +119,8 @@ def ne_plus_suivre_utilisateur(id):
 
 
 @api_bp.route("/publications", methods=["GET"])
-@jwt_required()
 def liste_publications():
     try:
-        user_id = get_jwt_identity()
-        
         publications = Publication.query.all()
 
         if not publications:
@@ -140,7 +132,7 @@ def liste_publications():
                 "titre": publication.titre,
                 "message": publication.message,
                 "date": publication.date.strftime("%Y-%m-%d %H:%M:%S"),
-                "auteur_id": publication.auteur_id,
+                "auteur_id": publication.auteur_id
             }
             for publication in publications
         ]

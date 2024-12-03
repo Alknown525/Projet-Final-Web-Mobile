@@ -1,31 +1,40 @@
 import React, { useState } from 'react';
+import { useRouter } from 'expo-router';
+import axios from 'axios';
 import { View, Text, StyleSheet } from 'react-native';
 import { Button, TextInput } from 'react-native-web'
-import { ouvrirSession } from '../api/authService'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ConnexionScreen({ navigation }) {
-  const [username, setUsername] = useState('');
+  const [courriel, setCourriel] = useState('');
   const [password, setPassword] = useState('');
+  const [user, setUser] = useState({username: '', userId: ''})
+  const router = useRouter();
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/api/jeton', { username, password });
-      await AsyncStorage.setItem('token', response.data.token);
-      navigation.navigate('Profil');
-    } catch (error) {
-      alert('Erreur de connexion');
-      // navigation.navigate('Profil');
+      const response = await axios.post('http://127.0.0.1:5000/api/jeton', { courriel, password });
+      await AsyncStorage.setItem('userToken', response.data.token);
+      await AsyncStorage.setItem('username',JSON.stringify(response.data.username));
+      await AsyncStorage.setItem('userId',JSON.stringify(response.data.userId));
+      //alert(response.data.userId);
+      router.replace('/publications');
+      //setUser({ username: 'Bob', userId: '1' });
+    } catch (e) {
+      //alert('Erreur de connexion');
+      alert('Courriel ou mot de passe invalide');
     }
   };
 
   return (
     <View style={styles.container}>
+      <Text style={styles.titre}>Bienvenue</Text>
+      <Text style={styles.soustitre}>Web Mobile: Projet Final{"\n"}par Alexandru B. et Éliott M.</Text>
       <TextInput
         style={styles.input}
-        placeholder="Nom d'utilisateur"
-        onChangeText={setUsername}
-        value={username}
+        placeholder="Courriel"
+        onChangeText={setCourriel}
+        value={courriel}
       />
       <TextInput
         style={styles.input}
@@ -49,14 +58,23 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#f5f5f5',
   },
-  title: {
-    fontSize: 24,
+  titre: {
+    textAlign: 'center',
+    fontSize: 60,
     fontWeight: 'bold',
     marginBottom: 2,
     color: '#333',
   },
+  soustitre: {
+    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: '',
+    marginBottom: 20,
+    color: '#333',
+  },
   input: {
-    width: '80%',
+    width: '25%',
+    minWidth: 250,
     padding: 12,
     borderWidth: 1,
     borderColor: '#ccc',
@@ -65,7 +83,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   buttonContainer: {
-    width: '80%',
+    width: '25%',
+    minWidth: 200,
     marginTop: 16,
   },
 });

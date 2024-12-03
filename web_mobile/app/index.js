@@ -1,69 +1,78 @@
-import React, { useState, useEffect } from 'react';
-import { StatusBar } from 'expo-status-bar'
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { StyleSheet, Text, View, SafeAreaView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { Link } from 'expo-router';
+import { StyleSheet, Text, View, SafeAreaView, ActivityIndicator } from 'react-native';
+import { StateProvider } from '../context/StateContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ActivityIndicator } from 'react-native';
-import FormSession from '../fonctionalites/session/composants/Form.session.composant'
-
-//import VuePublication from './fonctionalites/publication/vues/Vue.Publication'
-import axios from 'axios'
-import VueSession from '../fonctionalites/session/vues/Vue.session'
-
-const Stack = createNativeStackNavigator()
 
 export default function App() {
-  const chargerListFilms = async () => {
-    // Requete a http://localhost:5000/api/films pour la liste de films
-
-    try {
-      const resultat = await axios({
-        method: 'GET',
-        url: `http://localhost:5000/api/publications`,
-      })
-
-      setFilms(resultat.data)
-    } catch (e) {
-      console.log(e.message)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    chargerListFilms()
-  }, [])
+    const checkAuth = async () => {
+      try {
+        const userToken = await AsyncStorage.getItem('userToken');
+        if (!userToken) {
+          router.replace('/connexion');
+        }
+        else {
+          router.replace('/publications');
+        }
+      } catch (e) {
+        console.error('Error checking authentication:', e.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const [films, setFilms] = useState([])
-  const [loading, setLoading] = useState(true)
-  
+    checkAuth();
+  }, [router]);
+
+  if (isLoading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
+
   return (
-    //<NavigationContainer>
+    <StateProvider>
       <SafeAreaView style={styles.container}>
-        <Stack.Navigator initialRouteName="Session">
-          <Stack.Screen name="Session" component={VueSession} />
-          <Stack.Screen
-            name="Films"
-            children={() => <VueFilm films={films} loading={loading} />}
-          />
-        </Stack.Navigator>
+        <Text style={styles.header}>Bienvenue à l'App Microblog</Text>
+        <View style={styles.linksContainer}>
+          <Link href="/publications" style={styles.link}>
+            Voir les publications
+          </Link>
+          <Link href="/profil" style={styles.link}>
+            Voir les profils
+          </Link>
+          <Link href="/connexion" style={styles.link}>
+            Se connecter
+          </Link>
+        </View>
         <StatusBar style="auto" />
       </SafeAreaView>
-    //</NavigationContainer>
-  )
-  
+    </StateProvider>
+  );
 }
-
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
     justifyContent: 'center',
   },
-  link: {
+  header: {
     fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
   },
-})
+  linksContainer: {
+    alignItems: 'center',
+  },
+  link: {
+    fontSize: 18,
+    marginBottom: 10,
+    color: '#007BFF',
+  },
+});

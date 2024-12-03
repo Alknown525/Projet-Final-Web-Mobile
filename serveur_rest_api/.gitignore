@@ -1,19 +1,4 @@
-# Virtual environment
-venv/
 .env
-
-# Compiled Python files
-__pycache__/
-*.pyc
-*.pyo
-
-# Logs
-*.logs
-
-# System-specific files
-.DS_Store
-Thumbs.db
-
-# other
-
+venv/
 instance/
+__pycache__/
