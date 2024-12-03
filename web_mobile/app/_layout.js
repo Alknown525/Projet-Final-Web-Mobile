@@ -83,6 +83,9 @@ const Layout = () => {
           tabBarStyle: { display: 'none' },
           headerRight: () => (
             <View style={styles.headerButtons}>
+              <Link href="/CreerPublication" style={styles.button}>
+                <Text style={styles.linkText}>Publier</Text>
+              </Link>
               <Link href="/publications" style={styles.button}>
                 <Text style={styles.linkText}>Publications</Text>
               </Link>
