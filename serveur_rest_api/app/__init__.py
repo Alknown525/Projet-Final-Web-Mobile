@@ -4,13 +4,21 @@ from app.extensions import db, migrate, seeder, login
 from flask_jwt_extended import JWTManager
 from flask_bootstrap import Bootstrap
 from app.api import api_bp
+import os
 
 
 def create_app():
     app = Flask(__name__)
 
-    # Load the configuration from config.py or environment variables
+    UPLOAD_FOLDER = os.path.join(os.getcwd(), 'app', 'uploads')
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    app.config['ALLOWED_EXTENSIONS'] = ALLOWED_EXTENSIONS
     app.config.from_object('config.Config')
+
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER)
 
     # Initialize the extensions with the app
     db.init_app(app)

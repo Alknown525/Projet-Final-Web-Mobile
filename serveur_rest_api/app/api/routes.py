@@ -1,12 +1,12 @@
-from flask import jsonify, request
+from flask import current_app as app, jsonify, request, send_from_directory
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from app.extensions import db
+from werkzeug.utils import secure_filename
 
 # Activer la ligne c-dessous lorsque le modele est cree
 from app.modeles import Publication, Utilisateur, suivis
 from app.api import api_bp
-
-# Creer les routes d'authentifications
+import os
 
 
 # Creer le login (session)
@@ -17,25 +17,30 @@ def demander_jeton():
 
     # valider le mot de passe
     if not utilisateur or not utilisateur.valide_mot_passe(data["password"]):
-        return jsonify({"erreur": "Donnees d'authentifcation invalides"}), 401
+        return jsonify({
+            "status": "PASOK",
+            "erreur": "Donnees d'authentifcation invalides"
+        }), 401
 
     # l'utilisateur est authentifie, creer le jwt
     jeton = create_access_token(identity=utilisateur.id)
 
-    return jsonify({"jeton": jeton, "username": utilisateur.nom, "userId": utilisateur.id}), 201
+    return jsonify({"status": "OK", "jeton": jeton, "username": utilisateur.nom, "userId": utilisateur.id}), 201
 
 
 # Creer les routes pour les operations CRUD
 
 @api_bp.route("/", methods=["GET"])
+@jwt_required()
 def accueil():
-
     id = get_jwt_identity()
     print(f"Id utilisateur: {id}")
-
     utilisateur = Utilisateur.query.get(id)
 
-    return {utilisateur.id}
+    if not utilisateur:
+        return jsonify({"status": "PASOK", "message": "Utilisateur introuvable"}), 404
+
+    return jsonify({"status": "OK", "userId": utilisateur.id}), 200
 
 
 
@@ -46,33 +51,43 @@ def get_utilisateur(id):
     if not user:
         return jsonify({"message": "Utilisateur non trouvé"}), 404
 
-    followers_count = db.session.query(suivis).filter(suivis.c.utilisateur_suivi == user.id).count()
+    followers = [
+        {"id": suivis.id}
+        for suivis in user.followers
+    ]
     
     return jsonify({
         "id": user.id,
         "nom": user.nom,
         "courriel": user.courriel,
-        "followers": followers_count,
-    })
+        "image_profil": user.image_profil,
+        "followers": followers,
+    }), 201
 
 
 @api_bp.route("/utilisateur", methods=["GET"])
 def liste_utilisateurs():
     utilisateurs = Utilisateur.query.all()
-    liste_utilisateurs = [
-        {
+    liste_utilisateurs = []
+
+    for utilisateur in utilisateurs:
+        followers = [
+            {"id": suivis.id}
+            for suivis in utilisateur.followers
+        ]
+
+        liste_utilisateurs.append({
             "id": utilisateur.id,
             "nom": utilisateur.nom,
             "courriel": utilisateur.courriel,
-            "followers": len(utilisateur.followers),
-        }
-        for utilisateur in utilisateurs
-    ]
+            "image_profil": utilisateur.image_profil,
+            "followers": followers,
+        })
 
-    return jsonify(liste_utilisateurs)
+    return jsonify(liste_utilisateurs), 201
 
 
-@api_bp.route("/utilisateur/<int:id>/suivre", methods=["GET"])
+@api_bp.route("/utilisateur/suivre/<int:id>", methods=["GET"])
 @jwt_required()
 def suivre_utilisateur(id):
     current_user_id = get_jwt_identity()
@@ -87,16 +102,16 @@ def suivre_utilisateur(id):
 
     current_user = Utilisateur.query.get(current_user_id)
     
-    if user_to_follow in current_user.followers:
+    if current_user in user_to_follow.followers:
         return jsonify({"message": "Vous suivez déjà cet utilisateur"}), 400
 
-    current_user.followers.append(user_to_follow)
+    user_to_follow.followers.append(current_user)
     db.session.commit()
 
-    return jsonify({"message": f"Vous suivez maintenant {user_to_follow.nom}"})
+    return jsonify({"message": f"Vous suivez maintenant {user_to_follow.nom}"}), 200
 
 
-@api_bp.route("/utilisateur/<int:id>/ne_plus_suivre", methods=["GET"])
+@api_bp.route("/utilisateur/ne_plus_suivre/<int:id>", methods=["GET"])
 @jwt_required()
 def ne_plus_suivre_utilisateur(id):
     current_user_id = get_jwt_identity()
@@ -108,35 +123,51 @@ def ne_plus_suivre_utilisateur(id):
 
     current_user = Utilisateur.query.get(current_user_id)
     
-    if user_to_unfollow not in current_user.followers:
+    if current_user not in user_to_unfollow.followers:
         return jsonify({"message": "Vous ne suivez pas cet utilisateur"}), 400
 
-    current_user.followers.remove(user_to_unfollow)
+    user_to_unfollow.followers.remove(current_user)
     db.session.commit()
 
-    return jsonify({"message": f"Vous ne suivez plus {user_to_unfollow.nom}"})
+    return jsonify({"message": f"Vous ne suivez plus {user_to_unfollow.nom}"}), 200
 
 
 
 @api_bp.route("/publications", methods=["GET"])
 def liste_publications():
     try:
+        #current_user_id = get_jwt_identity()
         publications = Publication.query.all()
 
         if not publications:
             return jsonify({"message": "Aucune publication disponible"}), 404
 
-        publications_json = [
-            {
+        publications_liste = []
+
+        for publication in publications:
+
+            utilisateur = Utilisateur.query.get(publication.auteur_id)
+
+            followers = [
+                {"id": suivis.id}
+                for suivis in utilisateur.followers
+            ]
+            
+            publications_liste.append({
                 "id": publication.id,
                 "titre": publication.titre,
                 "message": publication.message,
-                "date": publication.date.strftime("%Y-%m-%d %H:%M:%S"),
-                "auteur_id": publication.auteur_id
-            }
-            for publication in publications
-        ]
-        return jsonify(publications_json), 200
+                "image": publication.image,
+                "utilisateur": {
+                    "id": utilisateur.id,
+                    "nom": utilisateur.nom,
+                    "courriel": utilisateur.courriel,
+                    "image_profil": utilisateur.image_profil,
+                    "followers": followers
+                }
+            })
+            
+        return jsonify(publications_liste), 200
 
     except Exception as e:
         db.session.rollback()
@@ -147,8 +178,6 @@ def liste_publications():
 @jwt_required()
 def get_publication(id):
     try:
-        user_id = get_jwt_identity()
-
         publication = Publication.query.get(id)
 
         if not publication:
@@ -158,7 +187,7 @@ def get_publication(id):
             "id": publication.id,
             "titre": publication.titre,
             "message": publication.message,
-            "date": publication.date.strftime("%Y-%m-%d %H:%M:%S"),
+            "image": publication.image,
             "auteur_id": publication.auteur_id,
         }
         return jsonify(publication_json), 200
@@ -171,18 +200,20 @@ def get_publication(id):
 @api_bp.route("/publications", methods=["POST"])
 @jwt_required()
 def creer_publication():
-
     try:
         user_id = get_jwt_identity()
-
         data = request.get_json()
 
         if not data.get("titre") or not data.get("message"):
-            return jsonify({"error": "Titre et message requis"}), 400
+            return jsonify({
+                "status": "PASOK",
+                "erreur": "Donnees de publications invalides"
+            }), 400
 
         publication = Publication(
             titre=data["titre"],
             message=data["description"],
+            image = data.get("image", ""),
             auteur_id=user_id,
         )
 
@@ -190,16 +221,49 @@ def creer_publication():
         db.session.commit()
 
         return jsonify({
-            "status": "Publication créée",
+            "status": "OK",
             "publication": {
                 "id": publication.id,
                 "titre": publication.titre,
                 "message": publication.message,
+                "image": publication.image,
                 "auteur_id": publication.auteur_id,
-                "date": publication.date.strftime("%Y-%m-%d %H:%M:%S"),
             }
         }), 201
 
     except Exception as e:
         db.session.rollback()
         return jsonify({"erreur": "Une erreur s'est produite"}), 500
+    
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+
+@api_bp.route("/televerser_image", methods=["POST"])
+def televerser_image():
+    if 'file' not in request.files:
+        return jsonify({"status": "PASOK", "erreur": "Aucun fichier trouvé"}), 400
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({"status": "PASOK", "erreur": "Nom de fichier vide"}), 400
+
+    if file and allowed_file(file.filename):
+        filename = f"{secure_filename(file.filename)}"
+        
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
+        image_url = f"http://127.0.0.1:5000/api/uploads/{filename}"
+        return jsonify({"status": "OK", "imageUrl": image_url}), 201
+
+    return jsonify({"status": "PASOK", "erreur": "Type de fichier non autorisé"}), 400
+
+
+@api_bp.route('/uploads/<filename>', methods=['GET'])
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename), 201

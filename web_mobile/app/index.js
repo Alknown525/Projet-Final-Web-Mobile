@@ -42,9 +42,6 @@ export default function App() {
           <Link href="/publications" style={styles.link}>
             Voir les publications
           </Link>
-          <Link href="/profil" style={styles.link}>
-            Voir les profils
-          </Link>
           <Link href="/connexion" style={styles.link}>
             Se connecter
           </Link>

@@ -12,7 +12,8 @@ const DisconnectScreen = () => {
         await AsyncStorage.removeItem('userToken');
         await AsyncStorage.removeItem('username');
         await AsyncStorage.removeItem('userId');
-        router.replace('/connexion');
+        //router.dismissAll()
+        //router.replace('/connexion');
       } catch (e) {
         console.error('Error logging out:', e.message);
       }
@@ -24,7 +25,9 @@ const DisconnectScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.message}>Vous êtes déconnecté</Text>
-      <Button title="Retour à la connexion" onPress={() => router.replace('/connexion')} />
+      <Button title="Retour à la connexion" onPress={() => {
+        router.dismissAll()
+        router.replace('/connexion')}} />
     </View>
   );
 };

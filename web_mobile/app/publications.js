@@ -1,18 +1,24 @@
 import { Link, useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, View, Text, TouchableOpacity, FlatList, Image, ActivityIndicator } from 'react-native'
+import { StyleSheet, View, Text, TouchableOpacity, FlatList, Image, ActivityIndicator, ScrollView } from 'react-native'
 import { useStateValue, StateProvider } from '../context/StateContext'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const PublicationsScreen = () => {
   const router = useRouter()
-  const { state, dispatch } = useStateValue()
+  const [userId, setUserId] = useState(null);
+  const {state, dispatch } = useStateValue()
+  const [filter, setFilter] = useState('tout')
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const userToken = await AsyncStorage.getItem('userToken');
+        const userId = await AsyncStorage.getItem('userId');
+        if (userId) {
+          setUserId(JSON.parse(userId));
+        }
         if (!userToken) {
           router.replace('/connexion');
         }
@@ -24,6 +30,16 @@ const PublicationsScreen = () => {
     checkAuth();
   }, []);
 
+  const filteredPublications = state.publications.filter((item) => {
+    if (filter === 'moi') {
+      return item.utilisateur.id === userId;
+    }
+    if (filter === 'suivies') {
+      return item.utilisateur.followers.some((follower) => follower.id === userId)
+    }
+    return true;
+  });
+
   if (state.loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -34,21 +50,48 @@ const PublicationsScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <FlatList style={styles.flatList}
-        data={state.publications}
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      <ScrollView horizontal style={styles.filterContainer}>
+        <TouchableOpacity
+          style={[styles.filterButton, filter === 'tout' && styles.selectedFilter]}
+          onPress={() => setFilter('tout')}>
+          <Text style={styles.filterText}>Toutes les publications</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterButton, filter === 'moi' && styles.selectedFilter]}
+          onPress={() => setFilter('moi')}>
+          <Text style={styles.filterText}>Mes publications</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterButton, filter === 'suivies' && styles.selectedFilter]}
+          onPress={() => setFilter('suivies')}>
+          <Text style={styles.filterText}>Publications suivies</Text>
+        </TouchableOpacity>
+      </ScrollView>
+
+      <FlatList
+        style={styles.flatList}
+        data={filteredPublications}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.item}>
-            <Text style={styles.titre}>{item.titre}</Text>
-
+            <View style={styles.authorContainer}>
+              <Image
+                source={{ uri: item.utilisateur.image_profil }}
+                style={styles.profileImage}
+              />
+              <View style={styles.authorInfo}>
+                <Text style={styles.authorName}>{item.utilisateur.nom}</Text>
+                <Text style={styles.titre}>{item.titre}</Text>
+              </View>
+            </View>
             <Text style={styles.text}>{item.message}</Text>
-            <Text style={styles.text}>{`Date: ${item.date}`}</Text>
-            <Text style={styles.text}>{`Auteur ID: ${item.auteur_id}`}</Text>
-
-            <Link href={`/profil/${item.auteur_id}`} style={styles.button}>
-              <Text style={styles.linkText}>Profile de l'auteur</Text>
-            </Link>
+            {item.image && (
+              <Image
+                source={{ uri: item.image }}
+                style={styles.postImage}
+              />
+            )}
           </View>
         )}
         ListEmptyComponent={() => (
@@ -57,25 +100,39 @@ const PublicationsScreen = () => {
           </Text>
         )}
       />
-    </View>
-  )
+    </ScrollView>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     marginTop: 25,
   },
-  flatList: {
-    width: '50%',
+  contentContainer: {
+    alignItems: 'center',
   },
-  image: {
-    width: 80,
-    height: 80,
+  flatList: {
+    width: '90%',
+  },
+  authorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  profileImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     marginRight: 10,
-    borderRadius: 8,
+  },
+  authorInfo: {
+    flex: 1,
+  },
+  authorName: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 5,
   },
   item: {
     flexDirection: 'column',
@@ -92,6 +149,12 @@ const styles = StyleSheet.create({
     marginLeft: 0,
     width: 150,
   },
+  postImage: {
+    width: '100%',
+    height: 200,
+    resizeMode: 'contain',
+    marginBottom: 10,
+  },
   linkText: {
     fontSize: 13,
     fontWeight: 'bold',
@@ -103,6 +166,25 @@ const styles = StyleSheet.create({
   },
   text: {
     padding: 5,
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    marginBottom: 15,
+  },
+  filterButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#ddd',
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  selectedFilter: {
+    backgroundColor: '#007BFF',
+  },
+  filterText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#000',
   }
 })
 

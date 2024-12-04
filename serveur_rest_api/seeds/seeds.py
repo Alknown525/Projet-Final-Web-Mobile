@@ -9,6 +9,10 @@ from app import db
 
 class PublicationSeeder(Seeder):
 
+    def generate_picsum_url(self):
+        image_id = str(random.randint(1, 1000))
+        return "https://picsum.photos/id/"+ image_id + "/400/300.jpg"
+
     def empty_database(self):
         """Supprime tous les enregistrements des tables de la base de données."""
         db.session.execute(suivis.delete())
@@ -29,8 +33,8 @@ class PublicationSeeder(Seeder):
             publication = Publication(
                 titre=faker.sentence(nb_words=5),
                 message=faker.paragraph(nb_sentences=2),
-                date=faker.date_this_year(),
-                auteur_id=random.choice([1, 2, 3, 4])
+                image=self.generate_picsum_url(),
+                auteur_id=random.choice([1, 2, 3, 4])   
             )
             print(f"Ajout publication: {publication.titre}")
             publication_instances.append(publication)
@@ -42,25 +46,25 @@ class PublicationSeeder(Seeder):
                 "nom": "Bob",
                 "courriel": "Bob@gmail.com",
                 "mot_passe_hache": generate_password_hash("Bob123"),
-                "image_profil": faker.image_url()
+                "image_profil": self.generate_picsum_url()
             },
             {
                 "nom": "Bobby",
                 "courriel": "Bobby@gmail.com",
                 "mot_passe_hache": generate_password_hash("Bobby123"),
-                "image_profil": faker.image_url()
+                "image_profil": self.generate_picsum_url()
             },
             {
                 "nom": "Jean",
                 "courriel": "jean@gmail.com",
                 "mot_passe_hache": generate_password_hash("Jean123"),
-                "image_profil": faker.image_url()
+                "image_profil": self.generate_picsum_url()
             },
             {
                 "nom": "Paul",
                 "courriel": "paul@gmail.com",
                 "mot_passe_hache": generate_password_hash("Paul123"),
-                "image_profil": faker.image_url()
+                "image_profil": self.generate_picsum_url()
             }
         ]
 

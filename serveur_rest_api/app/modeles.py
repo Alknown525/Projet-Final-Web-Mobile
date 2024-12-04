@@ -15,7 +15,7 @@ class Publication(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     titre = db.Column(db.String(100), nullable=False)
     message = db.Column(db.Text, nullable=False)
-    date = db.Column(db.DateTime, default=datetime.utcnow)
+    image = db.Column(db.String(255), nullable=True)
     auteur_id = db.Column(db.Integer, db.ForeignKey('utilisateur.id'), nullable=False)
 
 class Utilisateur(UserMixin, db.Model):

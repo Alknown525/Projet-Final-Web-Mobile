@@ -5,6 +5,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import AntDesign from '@expo/vector-icons/AntDesign'
 import { StateProvider, StateContext, useStateContext } from '../context/StateContext'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Button, TextInput } from 'react-native-web'
 import { getUserIdFromToken } from '../utility/utils';
 import jwt_decode from 'jwt-decode';
 
@@ -12,6 +13,19 @@ const Layout = () => {
   const [user, setUser] = useState(null);
   const [ident, setIdent] = useState(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  const logout = async () => {
+    try {
+      await AsyncStorage.removeItem('userToken');
+      await AsyncStorage.removeItem('username');
+      await AsyncStorage.removeItem('userId');
+      router.dismissAll()
+      router.replace('/connexion');
+    } catch (e) {
+      console.error('Error logging out:', e.message);
+    }
+  };
 
   useEffect(() => {
     const getUserData = async () => {
@@ -47,7 +61,6 @@ const Layout = () => {
   return (
     <StateProvider>
      <Stack>
-      {/*
       <Stack.Screen
         name="connexion"
         options={{
@@ -56,7 +69,6 @@ const Layout = () => {
           tabBarStyle: { display: 'none' },
         }}
       />
-      */}
       <Stack.Screen
         name="publications"
         options={{
@@ -65,33 +77,9 @@ const Layout = () => {
           tabBarStyle: { display: 'none' },
           headerRight: () => (
             <View style={styles.headerButtons}>
-              <Link href={`/profil/${ident}`} style={styles.button}>
-                <Text style={styles.linkText}>Mon profil</Text>
-              </Link>
-              <Link href="/deconnexion" style={styles.button2}>
-                <Text style={styles.linkText}>Déconnexion</Text>
-              </Link>
-            </View>
-          ),
-        }}
-      />
-      <Stack.Screen
-        name="profil/[id]"
-        options={{
-          title: 'Profile',
-          headerTitleStyle: styles.boldTitle,
-          tabBarStyle: { display: 'none' },
-          headerRight: () => (
-            <View style={styles.headerButtons}>
-              <Link href="/CreerPublication" style={styles.button}>
-                <Text style={styles.linkText}>Publier</Text>
-              </Link>
-              <Link href="/publications" style={styles.button}>
-                <Text style={styles.linkText}>Publications</Text>
-              </Link>
-              <Link href="/deconnexion" style={styles.button2}>
-                <Text style={styles.linkText}>Déconnexion</Text>
-              </Link>
+              <TouchableOpacity onPress={logout} style={styles.logoutButton}>
+                <Text style={styles.button}>Déconnecter</Text>
+              </TouchableOpacity>
             </View>
           ),
         }}
@@ -113,14 +101,8 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: 8,
     paddingHorizontal: 16,
-    backgroundColor: '#007BFF',
-    borderRadius: 8,
-    marginLeft: 10,
-  },
-  button2: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: '#C60000',
+    backgroundColor: '#FF0000',
+    fontWeight: 'bold',
     borderRadius: 8,
     marginLeft: 10,
   },
