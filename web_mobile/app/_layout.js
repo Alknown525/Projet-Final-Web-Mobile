@@ -84,6 +84,23 @@ const Layout = () => {
           ),
         }}
       />
+
+      
+      <Stack.Screen
+        name="CreerPublication"
+        options={{
+          title: 'Nouvelle Publication',
+          headerTitleStyle: styles.boldTitle,
+          tabBarStyle: { display: 'none' },
+          headerRight: () => (
+            <View style={styles.headerButtons}>
+              <TouchableOpacity onPress={logout} style={styles.logoutButton}>
+                <Text style={styles.button}>Déconnecter</Text>
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
     </Stack>
   </StateProvider>
   )

@@ -50,70 +50,95 @@ const PublicationsScreen = () => {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <ScrollView horizontal style={styles.filterContainer}>
-        <TouchableOpacity
-          style={[styles.filterButton, filter === 'tout' && styles.selectedFilter]}
-          onPress={() => setFilter('tout')}>
-          <Text style={styles.filterText}>Toutes les publications</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterButton, filter === 'moi' && styles.selectedFilter]}
-          onPress={() => setFilter('moi')}>
-          <Text style={styles.filterText}>Mes publications</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterButton, filter === 'suivies' && styles.selectedFilter]}
-          onPress={() => setFilter('suivies')}>
-          <Text style={styles.filterText}>Publications suivies</Text>
-        </TouchableOpacity>
+    <View style={styles.container}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+        <ScrollView horizontal style={styles.filterContainer}>
+          <TouchableOpacity
+            style={[styles.filterButton, filter === 'tout' && styles.selectedFilter]}
+            onPress={() => setFilter('tout')}>
+            <Text style={styles.filterText}>Toutes les publications</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterButton, filter === 'moi' && styles.selectedFilter]}
+            onPress={() => setFilter('moi')}>
+            <Text style={styles.filterText}>Mes publications</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterButton, filter === 'suivies' && styles.selectedFilter]}
+            onPress={() => setFilter('suivies')}>
+            <Text style={styles.filterText}>Publications suivies</Text>
+          </TouchableOpacity>
+        </ScrollView>
+
+        <FlatList
+          style={styles.flatList}
+          data={filteredPublications}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.item}>
+              <View style={styles.authorContainer}>
+                <Image
+                  source={{ uri: item.utilisateur.image_profil }}
+                  style={styles.profileImage}
+                />
+                <View style={styles.authorInfo}>
+                  <Text style={styles.authorName}>{item.utilisateur.nom}</Text>
+                  <Text style={styles.titre}>{item.titre}</Text>
+                </View>
+              </View>
+              <Text style={styles.text}>{item.message}</Text>
+              {item.image && (
+                <Image
+                  source={{ uri: item.image }}
+                  style={styles.postImage}
+                />
+              )}
+            </View>
+          )}
+          ListEmptyComponent={() => (
+            <Text style={{ textAlign: 'center', marginTop: 20 }}>
+              Aucun article n'a été trouvé.
+            </Text>
+          )}
+        />
+        <View horizontal style={styles.filterContainer}>
+          <TouchableOpacity
+            style={styles.filterButton}
+            //onPress={() => router.push('/CreerPublication')}
+          >
+            <Text style={styles.createButtonText}>Precedent</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.filterButton}
+            //onPress={() => router.push('/CreerPublication')}
+          >
+            <Text style={styles.createButtonText}>Suivant</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
-      <FlatList
-        style={styles.flatList}
-        data={filteredPublications}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.item}>
-            <View style={styles.authorContainer}>
-              <Image
-                source={{ uri: item.utilisateur.image_profil }}
-                style={styles.profileImage}
-              />
-              <View style={styles.authorInfo}>
-                <Text style={styles.authorName}>{item.utilisateur.nom}</Text>
-                <Text style={styles.titre}>{item.titre}</Text>
-              </View>
-            </View>
-            <Text style={styles.text}>{item.message}</Text>
-            {item.image && (
-              <Image
-                source={{ uri: item.image }}
-                style={styles.postImage}
-              />
-            )}
-          </View>
-        )}
-        ListEmptyComponent={() => (
-          <Text style={{ textAlign: 'center', marginTop: 20 }}>
-            Aucun article n'a été trouvé.
-          </Text>
-        )}
-      />
-    </ScrollView>
+      <TouchableOpacity
+        style={styles.createButton}
+        onPress={() => router.push('/CreerPublication')}
+      >
+        <Text style={styles.createButtonText}>Publier</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: 25,
+    marginTop: 10,
   },
   contentContainer: {
     alignItems: 'center',
   },
   flatList: {
-    width: '90%',
+    width: 500,
+    maxWidth: '90%',
+    minWidth: 300,
   },
   authorContainer: {
     flexDirection: 'row',
@@ -170,6 +195,8 @@ const styles = StyleSheet.create({
   filterContainer: {
     flexDirection: 'row',
     marginBottom: 15,
+    maxWidth: '90%',
+    alignContent: 'center',
   },
   filterButton: {
     paddingVertical: 8,
@@ -185,7 +212,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: '#000',
-  }
+  },
+
+  createButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: '#007BFF',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 50,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
+  },
+  createButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 })
 
 export default PublicationsScreen
