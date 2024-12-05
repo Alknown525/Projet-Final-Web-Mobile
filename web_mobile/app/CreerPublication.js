@@ -24,6 +24,7 @@ export default function CreerPublicationScreen() {
         message,
         image,
       };
+      console.log('Sending publication data:', publicationData); // Debug log
 
       const response = await axios.post(
         'http://127.0.0.1:5000/api/publications', // Correct API endpoint

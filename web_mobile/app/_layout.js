@@ -77,6 +77,28 @@ const Layout = () => {
           tabBarStyle: { display: 'none' },
           headerRight: () => (
             <View style={styles.headerButtons}>
+              <TouchableOpacity onPress={() => router.replace('/listeUtilisateurs')} style={styles.logoutButton}>
+                <Text style={styles.buttonBlue}>Utilisateurs</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={logout} style={styles.logoutButton}>
+                <Text style={styles.button}>Déconnecter</Text>
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+
+      <Stack.Screen
+        name="listeUtilisateurs"
+        options={{
+          title: 'Liste des utilisateurs',
+          headerTitleStyle: styles.boldTitle,
+          tabBarStyle: { display: 'none' },
+          headerRight: () => (
+            <View style={styles.headerButtons}>
+              <TouchableOpacity onPress={() => router.replace('/publications')} style={styles.logoutButton}>
+                <Text style={styles.buttonBlue}>Publications</Text>
+              </TouchableOpacity>
               <TouchableOpacity onPress={logout} style={styles.logoutButton}>
                 <Text style={styles.button}>Déconnecter</Text>
               </TouchableOpacity>
@@ -119,6 +141,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     backgroundColor: '#FF0000',
+    fontWeight: 'bold',
+    borderRadius: 8,
+    marginLeft: 10,
+  },
+  buttonBlue: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#007BFF',
     fontWeight: 'bold',
     borderRadius: 8,
     marginLeft: 10,
