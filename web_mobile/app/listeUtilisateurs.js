@@ -13,6 +13,7 @@ const PublicationsScreen = () => {
   const [filter, setFilter] = useState('tout')
   const [listeUtilisateurs, setListeUtilisateurs] = useState([]);
   const [listeSuivis, setListeSuivis] = useState([]);
+  const [liste123, setListe123] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -38,26 +39,20 @@ const PublicationsScreen = () => {
   const getUtilisateurs = async () => {
     setLoading(true);
     const token = await AsyncStorage.getItem('userToken');
-    const currentUserId = await AsyncStorage.getItem('userId');
     const response = await axios.get('http://localhost:5000/api/utilisateur', {
       headers: { Authorization: `Bearer ${token}` },
     });
     setListeUtilisateurs(response.data);
-<<<<<<< Updated upstream
-=======
-
-    const response2 = await axios.get(`http://localhost:5000/api/utilisateur/${currentUserId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-    if (response2.data.followers) {
-        setListeSuivis(response2.data.followers.map(item => item.id));
-    }
-
-    console.log(listeSuivis)
-
+    
+    const response2 = await axios.get(`http://localhost:5000/api/utilisateur/following`, {
+        headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json', 
+        },
+    });
+    setListeSuivis(response2.data);
+    
     setLoading(false);
->>>>>>> Stashed changes
   }
 
   const handleFollowUnfollow = (userId, isFollowing) => {
@@ -89,7 +84,7 @@ const PublicationsScreen = () => {
             'Content-Type': 'application/json',
             }
         });
-        alert('Vous suivez maintenant cet utilisateur');
+        //alert('Vous suivez maintenant cet utilisateur');
         getUtilisateurs();
         console.log('Publication response:', response.data);
         
@@ -123,7 +118,7 @@ const PublicationsScreen = () => {
             'Content-Type': 'application/json',
             }
         });
-        alert('Vous ne suivez plus cet utilisateur');
+        //alert('Vous ne suivez plus cet utilisateur');
         getUtilisateurs();
         console.log('Publication response:', response.data);
         
@@ -166,9 +161,8 @@ const PublicationsScreen = () => {
               style={styles.filterContainer}
           >
               <TouchableOpacity
-                  style={styles.button}
+                  style={isFollowing ? styles.buttonPlusSuivre : styles.buttonSuivre}
                   onPress={() => handleFollowUnfollow(item.id, isFollowing)}
-                  color={isFollowing ? 'red' : 'blue'}
               >
                   <Text style={styles.createButtonText}>{isFollowing ? 'Unfollow' : 'Follow'}</Text>
               </TouchableOpacity>

@@ -289,7 +289,7 @@ def get_following_users():
 
     for utilisateur in utilisateurs:
         if any(follower.id == current_user_id for follower in utilisateur.followers):
-            following_users.append({"id": utilisateur.id})
+            following_users.append(utilisateur.id)
 
-    return jsonify({"followers": following_users})
+    return jsonify(following_users)
     
