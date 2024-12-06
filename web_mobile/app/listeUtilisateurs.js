@@ -84,7 +84,7 @@ const PublicationsScreen = () => {
             'Content-Type': 'application/json',
             }
         });
-        alert('Vous suivez maintenant cet utilisateur');
+        //alert('Vous suivez maintenant cet utilisateur');
         getUtilisateurs();
         console.log('Publication response:', response.data);
         
@@ -118,7 +118,7 @@ const PublicationsScreen = () => {
             'Content-Type': 'application/json',
             }
         });
-        alert('Vous ne suivez plus cet utilisateur');
+        //alert('Vous ne suivez plus cet utilisateur');
         getUtilisateurs();
         console.log('Publication response:', response.data);
         
