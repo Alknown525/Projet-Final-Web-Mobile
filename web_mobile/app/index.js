@@ -15,7 +15,7 @@ export default function App() {
       try {
         const userToken = await AsyncStorage.getItem('userToken');
         if (!userToken) {
-          router.replace('/connexion');
+          router.replace('/Connexion');
         }
         else {
           router.replace('/publications');
@@ -42,7 +42,7 @@ export default function App() {
           <Link href="/publications" style={styles.link}>
             Voir les publications
           </Link>
-          <Link href="/connexion" style={styles.link}>
+          <Link href="/Connexion" style={styles.link}>
             Se connecter
           </Link>
         </View>

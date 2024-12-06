@@ -1,5 +1,5 @@
 from flask import current_app as app, jsonify, request, send_from_directory
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, JWTManager
 from app.extensions import db
 from werkzeug.utils import secure_filename
 
@@ -25,7 +25,7 @@ def demander_jeton():
     # l'utilisateur est authentifie, creer le jwt
     jeton = create_access_token(identity=utilisateur.id)
 
-    return jsonify({"status": "OK", "jeton": jeton, "username": utilisateur.nom, "userId": utilisateur.id}), 201
+    return jsonify({"status": "OK", "jeton": jeton, "username": utilisateur.nom, "userId": utilisateur.id}), 200
 
 
 # Creer les routes pour les operations CRUD
@@ -40,7 +40,7 @@ def accueil():
     if not utilisateur:
         return jsonify({"status": "PASOK", "message": "Utilisateur introuvable"}), 404
 
-    return jsonify({"status": "OK", "userId": utilisateur.id}), 200
+    return jsonify({"nom": utilisateur.nom, "courriel": utilisateur.courriel}), 200
 
 
 
@@ -134,9 +134,9 @@ def ne_plus_suivre_utilisateur(id):
 
 
 @api_bp.route("/publications", methods=["GET"])
+@jwt_required()
 def liste_publications():
     try:
-        #current_user_id = get_jwt_identity()
         publications = Publication.query.all()
 
         if not publications:
@@ -204,16 +204,21 @@ def creer_publication():
         user_id = get_jwt_identity()
         data = request.get_json()
 
-        if not data.get("titre") or not data.get("message"):
+        titre = data.get("titre")
+        description = data.get("description")
+        image = data.get("image", "")
+
+        if not titre or not description:
             return jsonify({
                 "status": "PASOK",
                 "erreur": "Donnees de publications invalides"
             }), 400
+        
 
         publication = Publication(
-            titre=data["titre"],
-            message=data["description"],
-            image = data.get("image", ""),
+            titre=titre,
+            message=description,
+            image=image,
             auteur_id=user_id,
         )
 
@@ -233,37 +238,9 @@ def creer_publication():
 
     except Exception as e:
         db.session.rollback()
-        return jsonify({"erreur": "Une erreur s'est produite"}), 500
+        return jsonify({
+            "status": "error",
+            "message": "Une erreur s'est produite",
+            "details": str(e)
+        }), 500
     
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
-
-
-@api_bp.route("/televerser_image", methods=["POST"])
-def televerser_image():
-    if 'file' not in request.files:
-        return jsonify({"status": "PASOK", "erreur": "Aucun fichier trouvé"}), 400
-
-    file = request.files['file']
-
-    if file.filename == '':
-        return jsonify({"status": "PASOK", "erreur": "Nom de fichier vide"}), 400
-
-    if file and allowed_file(file.filename):
-        filename = f"{secure_filename(file.filename)}"
-        
-        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-
-        image_url = f"http://127.0.0.1:5000/api/uploads/{filename}"
-        return jsonify({"status": "OK", "imageUrl": image_url}), 201
-
-    return jsonify({"status": "PASOK", "erreur": "Type de fichier non autorisé"}), 400
-
-
-@api_bp.route('/uploads/<filename>', methods=['GET'])
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename), 201

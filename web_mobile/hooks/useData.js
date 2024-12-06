@@ -1,16 +1,28 @@
-import { useEffect, useReducer } from 'react'
+import React, { useEffect, useState, useReducer } from 'react'
 import axios from 'axios'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import dataReducer, { CHARGER_PUBLICATIONS } from '../reducers/dataReducer'
 
 const useData = () => {
+  const [userToken, setUserToken] = useState(null);
   const [state, dispatch] = useReducer(dataReducer, {
     publications: [],
-    loading: true,
+    loading: false,
   })
 
   const chargerListePublications = async () => {
     try {
-      const resultat = await axios.get('http://127.0.0.1:5000/api/publications');
+      const userToken = await AsyncStorage.getItem('userToken');
+      if (userToken === null) {
+        console.log('No token found');
+      }
+
+      const resultat = await axios.get('http://127.0.0.1:5000/api/publications', {
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
       dispatch({
         type: CHARGER_PUBLICATIONS,
         payload: resultat.data,

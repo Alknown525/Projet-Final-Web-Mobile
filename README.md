@@ -16,7 +16,7 @@
 
 ```
 SECRET_KEY='votre_clé_secrète'
-DATABASE_URL=sqlite:///films.db
+DATABASE_URL=sqlite:///app.db
 FLASK_ENV=development
 FLASK_DEBUG=1
 ```
