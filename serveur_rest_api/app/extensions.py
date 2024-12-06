@@ -12,4 +12,3 @@ migrate = Migrate()    # Initialize Flask-Migrate
 seeder = FlaskSeeder() # Initialize Flask-Seeder (but to be connected to app later)
 login = LoginManager() # Intialize LoginManager
 jwt = JWTManager()
-socketio = SocketIO()

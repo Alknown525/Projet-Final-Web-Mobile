@@ -1,18 +1,11 @@
 from flask import current_app as app, jsonify, request, send_from_directory
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, JWTManager
 from app.extensions import db
-from app import socketio
-from flask_socketio import emit
 
 # Activer la ligne c-dessous lorsque le modele est cree
 from app.modeles import Publication, Utilisateur, suivis
 from app.api import api_bp
 import os
-
-@socketio.on('nouvelle_publication')
-def handle_new_post(data):
-    print("Nouvelle publication reçue :", data)
-    emit('nouvelle_publication', data, broadcast=True)
 
 # Creer le login (session)
 @api_bp.route("/jeton", methods=["POST"])
@@ -197,7 +190,10 @@ def liste_publications():
                 }
             })
             
-        return jsonify(publications_liste), 200
+        return jsonify({
+            "status": "OK",
+            "publications": publications_liste
+        }), 200
 
     except Exception as e:
         db.session.rollback()
@@ -255,21 +251,20 @@ def creer_publication():
         db.session.add(publication)
         db.session.commit()
 
-        socketio.emit('nouvelle_publication', {
-            'titre': titre,
-            'description': description,
-            'image': image
-        })
+        publication_data = {
+            "id": publication.id,
+            "titre": publication.titre,
+            "message": publication.message,
+            "image": publication.image,
+            "auteur_id": publication.auteur_id,
+        }
+
+        from app import socketio
+        socketio.emit('nouvelle_publication', {'message': 'New publication created'})
 
         return jsonify({
             "status": "OK",
-            "publication": {
-                "id": publication.id,
-                "titre": publication.titre,
-                "message": publication.message,
-                "image": publication.image,
-                "auteur_id": publication.auteur_id,
-            }
+            "publication": publication_data,
         }), 201
 
     except Exception as e:

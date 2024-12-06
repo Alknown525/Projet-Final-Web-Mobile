@@ -1,11 +1,13 @@
 from flask import Flask
 from flask_cors import CORS
-from app.extensions import db, migrate, seeder, login, jwt, socketio
+from app.extensions import db, migrate, seeder, login, jwt
 from flask_bootstrap import Bootstrap
 from app.api import api_bp
 from dotenv import load_dotenv
+from flask_socketio import SocketIO
 
 load_dotenv()
+socketio = SocketIO(cors_allowed_origins="*")
 
 def create_app():
     app = Flask(__name__)
@@ -16,7 +18,7 @@ def create_app():
     seeder.init_app(app, db)
     login.init_app(app)
     jwt.init_app(app)
-    CORS(app, resources={r"/api/*": {"origins": "http://localhost:8081"}})
+    CORS(app)
     Bootstrap(app)
     socketio.init_app(app)
 
@@ -25,4 +27,4 @@ def create_app():
     # Register Blueprints
     app.register_blueprint(api_bp, url_prefix='/api')
 
-    return app
+    return app, socketio

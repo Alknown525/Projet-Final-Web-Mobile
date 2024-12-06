@@ -1,14 +1,11 @@
 import React, { useEffect, useState, useReducer } from 'react'
 import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import dataReducer, { CHARGER_PUBLICATIONS } from '../reducers/dataReducer'
+import dataReducer, { CHARGER_PUBLICATIONS, initialState } from '../reducers/dataReducer'
 
 const useData = () => {
   const [userToken, setUserToken] = useState(null);
-  const [state, dispatch] = useReducer(dataReducer, {
-    publications: [],
-    loading: false,
-  })
+  const [state, dispatch] = useReducer(dataReducer, initialState)
 
   const chargerListePublications = async () => {
     try {

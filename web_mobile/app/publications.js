@@ -1,23 +1,24 @@
 import { Link, useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, View, Text, TouchableOpacity, Button , FlatList, Image, ActivityIndicator, ScrollView } from 'react-native'
-import { useStateValue, StateProvider } from '../context/StateContext'
+import { StyleSheet, View, Text, TouchableOpacity, Button, FlatList, Image, ActivityIndicator, ScrollView } from 'react-native'
+import { useStateValue } from '../context/StateContext'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import io from 'socket.io-client';
+import { io } from 'socket.io-client';
 
-const socket = io('http://127.0.0.1:5000');
+const socket = io('http://localhost:5000');
 
 const PublicationsScreen = () => {
   const router = useRouter()
   const [userToken, setUserToken] = useState(null);
   const [userId, setUserId] = useState(null);
-  const {state, dispatch } = useStateValue()
+  const { state, dispatch } = useStateValue()
   const [filter, setFilter] = useState('tout')
-  const [posts, setPosts] = useState([]);
-  const [newPostAvailable, setNewPostAvailable] = useState(false);
+  const [publications, setPublications] = useState([]);
+  const { newPostAvailable } = state;
 
   useEffect(() => {
+    console.log('New post available:', newPostAvailable);
     const checkAuth = async () => {
       try {
         const userToken = await AsyncStorage.getItem('userToken');
@@ -36,12 +37,12 @@ const PublicationsScreen = () => {
 
     socket.on('nouvelle_publication', (data) => {
       console.log('Nouvelle publication reçue:', data);
-      setNewPostAvailable(true);
+      dispatch({
+        type: 'SET_NEW_POST_AVAILABLE',
+        payload: true,
+      });
     });
-
-    return () => {
-      socket.off('nouvelle_publication');
-    };
+    
   }, []);
 
   const fetchPosts = async () => {
@@ -54,29 +55,34 @@ const PublicationsScreen = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-
+        
       if (response.data.status === 'OK') {
+        router.replace('/publications');
+        console.log("OK")
         dispatch({
-          type: 'SET_PUBLICATIONS',
+          type: 'CHARGER_PUBLICATIONS',
           payload: response.data.publications,
         });
-
-        setNewPostAvailable(false);
+        
+        setPublications(response.data.publications);
       }
     } catch (error) {
       console.error('Erreur lors du chargement des publications :', error.message);
     }
   };
 
-  const filteredPublications = state.publications.filter((item) => {
-    if (filter === 'moi') {
-      return item.utilisateur.id === userId;
-    }
-    if (filter === 'suivies') {
-      return item.utilisateur.followers.some((follower) => follower.id === userId)
-    }
-    return true;
-  });
+  const filteredPublications = Array.isArray(state.publications) 
+  ? state.publications.filter((item) => {
+      if (filter === 'moi') {
+        return item.utilisateur.id === userId;
+      }
+      if (filter === 'suivies') {
+        return item.utilisateur.followers?.some((follower) => follower.id === userId);
+      }
+      return true;
+    })
+  : [];
+
 
   if (state.loading) {
     return (
@@ -90,7 +96,17 @@ const PublicationsScreen = () => {
   return (
     <View style={styles.container}>
       {newPostAvailable && (
-        <Button title="Nouveaux messages disponibles. Actualiser" onPress={fetchPosts} />
+        <TouchableOpacity
+          style={[styles.filterButton, styles.refreshButton]}
+          onPress={() => {
+            fetchPosts();
+            dispatch({
+              type: 'SET_NEW_POST_AVAILABLE',
+              payload: false,
+            });
+          }}>
+          <Text style={styles.filterText}>Nouvelle publication disponible, rafraichir</Text>
+        </TouchableOpacity>
       )}
       <ScrollView style={styles.container2} contentContainerStyle={styles.contentContainer}>
         <ScrollView horizontal style={styles.filterContainer}>
@@ -262,6 +278,14 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  refreshButton: {
+    backgroundColor: '#007BFF',
+    marginVertical: 10,
+    alignSelf: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8, 
   },
 })
 

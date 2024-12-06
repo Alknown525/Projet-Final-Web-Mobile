@@ -69,9 +69,12 @@ export default function CreerPublicationScreen() {
             }
           }
         );
+        dispatch({
+          type: 'SET_NEW_POST_AVAILABLE',
+          payload: true,
+        });
         alert('Publication créée avec succès!');
         router.replace('/publications');
-        console.log('Publication response:', response.data);
       }
     }
     catch (error) {
