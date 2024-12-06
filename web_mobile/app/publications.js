@@ -4,7 +4,9 @@ import { StyleSheet, View, Text, TouchableOpacity, Button , FlatList, Image, Act
 import { useStateValue, StateProvider } from '../context/StateContext'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import io from 'socket.io-client';
 
+const socket = io('http://localhost:3000');
 
 const PublicationsScreen = () => {
   const router = useRouter()
@@ -32,17 +34,24 @@ const PublicationsScreen = () => {
     };
 
     checkAuth();
-    fetchPosts();
-  }, []);
+    //fetchPosts();
+    socket.on('new_post', () => {
+      setNewPostAvailable(true);
+    });
 
+    return () => {
+      socket.off('new_post');
+    };
+  }, []);
+/*
   const fetchPosts = async () => {
-    const token = await AsyncStorage.getItem('token');
+    const token = await AsyncStorage.getItem('userToken');
     const response = await axios.get('http://localhost:5000/api/publications', {
       headers: { Authorization: `Bearer ${token}` },
     });
     setPosts(response.data);
   };
-
+*/
   const filteredPublications = state.publications.filter((item) => {
     if (filter === 'moi') {
       return item.utilisateur.id === userId;

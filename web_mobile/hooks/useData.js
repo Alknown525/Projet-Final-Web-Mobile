@@ -17,7 +17,7 @@ const useData = () => {
         console.log('No token found');
       }
 
-      const resultat = await axios.get('http://127.0.0.1:5000/api/publications', {
+      const resultat = await axios.get('http://localhost:5000/api/publications', {
         headers: {
           Authorization: `Bearer ${userToken}`,
           'Content-Type': 'application/json',
