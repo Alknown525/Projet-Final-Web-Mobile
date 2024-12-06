@@ -1,3 +1,8 @@
+const initialState = {
+  publications: [],
+  loading: false,
+};
+
 export const CHARGER_PUBLICATIONS = 'CHARGER_PUBLICATIONS'
 
 const dataReducer = (state = initialState, action) => {

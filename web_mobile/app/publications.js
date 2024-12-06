@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const PublicationsScreen = () => {
   const router = useRouter()
+  const [userToken, setUserToken] = useState(null);
   const [userId, setUserId] = useState(null);
   const {state, dispatch } = useStateValue()
   const [filter, setFilter] = useState('tout')
@@ -20,7 +21,7 @@ const PublicationsScreen = () => {
           setUserId(JSON.parse(userId));
         }
         if (!userToken) {
-          router.replace('/connexion');
+          router.replace('/Connexion');
         }
       } catch (e) {
         console.error('Error checking authentication:', e.message);
@@ -101,25 +102,11 @@ const PublicationsScreen = () => {
             </Text>
           )}
         />
-        <View horizontal style={styles.filterContainer}>
-          <TouchableOpacity
-            style={styles.filterButton}
-            //onPress={() => router.push('/CreerPublication')}
-          >
-            <Text style={styles.createButtonText}>Precedent</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.filterButton}
-            //onPress={() => router.push('/CreerPublication')}
-          >
-            <Text style={styles.createButtonText}>Suivant</Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
 
       <TouchableOpacity
         style={styles.createButton}
-        onPress={() => router.push('/CreerPublication')}
+        onPress={() => router.replace('/CreerPublication')}
       >
         <Text style={styles.createButtonText}>Publier</Text>
       </TouchableOpacity>

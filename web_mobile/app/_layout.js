@@ -21,7 +21,7 @@ const Layout = () => {
       await AsyncStorage.removeItem('username');
       await AsyncStorage.removeItem('userId');
       router.dismissAll()
-      router.replace('/connexion');
+      router.replace('/Connexion', { reset: true });
     } catch (e) {
       console.error('Error logging out:', e.message);
     }
@@ -62,7 +62,7 @@ const Layout = () => {
     <StateProvider>
      <Stack>
       <Stack.Screen
-        name="connexion"
+        name="Connexion"
         options={{
           title: 'Connexion',
           headerTitleStyle: styles.boldTitle,

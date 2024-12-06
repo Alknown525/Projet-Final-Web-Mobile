@@ -4,22 +4,21 @@ import axios from 'axios';
 import { View, Text, StyleSheet } from 'react-native';
 import { Button, TextInput } from 'react-native-web'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useStateValue, StateProvider } from '../context/StateContext'
 
 export default function ConnexionScreen({ navigation }) {
+  const {state, dispatch } = useStateValue()
   const [courriel, setCourriel] = useState('');
   const [password, setPassword] = useState('');
-  const [user, setUser] = useState({username: '', userId: ''})
   const router = useRouter();
 
   const handleLogin = async () => {
     try {
       const response = await axios.post('http://127.0.0.1:5000/api/jeton', { courriel, password });
-      await AsyncStorage.setItem('userToken', response.data.token);
-      await AsyncStorage.setItem('username',JSON.stringify(response.data.username));
-      await AsyncStorage.setItem('userId',JSON.stringify(response.data.userId));
-      //alert(response.data.userId);
+      await AsyncStorage.setItem('userToken', response.data.jeton);
+      await AsyncStorage.setItem('username', JSON.stringify(response.data.username));
+      await AsyncStorage.setItem('userId', response.data.userId);
       router.replace('/publications');
-      //setUser({ username: 'Bob', userId: '1' });
     } catch (e) {
       //alert('Erreur de connexion');
       alert('Courriel ou mot de passe invalide');
