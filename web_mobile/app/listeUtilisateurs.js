@@ -1,6 +1,6 @@
 import { Link, useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, View, Text, TouchableOpacity, FlatList, Image, ActivityIndicator, ScrollView } from 'react-native'
+import { StyleSheet, View, Text, TouchableOpacity, FlatList, Image, ActivityIndicator, ScrollView, Alert  } from 'react-native'
 import { useStateValue, StateProvider } from '../context/StateContext'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -41,6 +41,76 @@ const PublicationsScreen = () => {
     setListeUtilisateurs(response.data);
   }
 
+  const suivreUtilisateur = async (userId) => {
+    try {
+        const token = await AsyncStorage.getItem('userToken');
+        if (!token) {
+          Alert.alert('Erreur', 'Jeton authentification manquant.');
+          console.log('no token', 'no token');
+          return;
+        }
+
+        const response = await axios.get(
+        `http://127.0.0.1:5000/api/utilisateur/suivre/${userId}`,
+        {
+            headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            }
+        });
+        alert('Vous suivez maintenant cet utilisateur');
+        getUtilisateurs();
+        console.log('Publication response:', response.data);
+        
+      }
+      catch (error) {
+        //console.error('Erreur:', error);
+        if (error.response) {
+          alert(error.response.data.message || 'Une erreur s\'est produite.');
+          console.log('Erreur', error.response.data || 'Une erreur s\'est produite.')
+        } else {
+          alert('Erreur de connexion');
+          console.log('Erreur', error.message)
+        }
+      }
+  }
+
+  
+  const plusSuivreUtilisateur = async (userId) => {
+    try {
+        const token = await AsyncStorage.getItem('userToken');
+        if (!token) {
+          Alert.alert('Erreur', 'Jeton authentification manquant.');
+          console.log('no token', 'no token');
+          return;
+        }
+
+        const response = await axios.get(
+        `http://127.0.0.1:5000/api/utilisateur/ne_plus_suivre/${userId}`,
+        {
+            headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            }
+        });
+        alert('Vous ne suivez plus cet utilisateur');
+        getUtilisateurs();
+        console.log('Publication response:', response.data);
+        
+      }
+      catch (error) {
+        //console.error('Error creating publication:', error);
+        if (error.response) {
+          alert(error.response.data.message || 'Une erreur s\'est produite.');
+          console.log('Erreur', error.response.data || 'Une erreur s\'est produite.')
+        } else {
+          alert('Erreur de connexion');
+          console.log('Erreur', error.message)
+        }
+      }
+  }
+
+
   if (state.loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -75,13 +145,13 @@ const PublicationsScreen = () => {
                 >
                     <TouchableOpacity
                         style={styles.buttonSuivre}
-                        //onPress={() => router.push('/CreerPublication')}
+                        onPress={() => suivreUtilisateur(item.id)}
                     >
                         <Text style={styles.createButtonText}>Suivre</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.buttonPlusSuivre}
-                        //onPress={() => router.push('/CreerPublication')}
+                        onPress={() => plusSuivreUtilisateur(item.id)}
                     >
                         <Text style={styles.createButtonText}>Ne plus suivre</Text>
                     </TouchableOpacity>
@@ -96,20 +166,6 @@ const PublicationsScreen = () => {
             </Text>
           )}
         />
-        <View horizontal style={styles.filterContainer}>
-          <TouchableOpacity
-            style={styles.filterButton}
-            //onPress={() => router.push('/CreerPublication')}
-          >
-            <Text style={styles.createButtonText}>Precedent</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.filterButton}
-            //onPress={() => router.push('/CreerPublication')}
-          >
-            <Text style={styles.createButtonText}>Suivant</Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
 
       <TouchableOpacity
