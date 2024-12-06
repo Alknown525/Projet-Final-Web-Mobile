@@ -19,6 +19,7 @@ SECRET_KEY='votre_clé_secrète'
 DATABASE_URL=sqlite:///app.db
 FLASK_ENV=development
 FLASK_DEBUG=1
+FLASK_APP = "run.py"
 ```
 
 3. Créer un environnement virtuel

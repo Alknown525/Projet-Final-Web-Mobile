@@ -13,6 +13,7 @@ const PublicationsScreen = () => {
   const [filter, setFilter] = useState('tout')
   const [listeUtilisateurs, setListeUtilisateurs] = useState([]);
   const [listeSuivis, setListeSuivis] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -35,11 +36,28 @@ const PublicationsScreen = () => {
   }, []);
 
   const getUtilisateurs = async () => {
+    setLoading(true);
     const token = await AsyncStorage.getItem('userToken');
+    const currentUserId = await AsyncStorage.getItem('userId');
     const response = await axios.get('http://localhost:5000/api/utilisateur', {
       headers: { Authorization: `Bearer ${token}` },
     });
     setListeUtilisateurs(response.data);
+<<<<<<< Updated upstream
+=======
+
+    const response2 = await axios.get(`http://localhost:5000/api/utilisateur/${currentUserId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+    if (response2.data.followers) {
+        setListeSuivis(response2.data.followers.map(item => item.id));
+    }
+
+    console.log(listeSuivis)
+
+    setLoading(false);
+>>>>>>> Stashed changes
   }
 
   const handleFollowUnfollow = (userId, isFollowing) => {
@@ -133,7 +151,7 @@ const PublicationsScreen = () => {
 
   const renderItem = ({ item }) => {
     const isFollowing = listeSuivis.includes(item.id); // Check if user is followed
-
+    
     return (
         <View style={styles.item}>
         <View style={styles.authorContainer}>
@@ -146,8 +164,6 @@ const PublicationsScreen = () => {
           </View>
           <View 
               style={styles.filterContainer}
-              // BOUTONS SUIVRE ET NE PLUS SUIVRE
-              // AJOUTER IF ELSE
           >
               <TouchableOpacity
                   style={styles.button}
@@ -156,18 +172,16 @@ const PublicationsScreen = () => {
               >
                   <Text style={styles.createButtonText}>{isFollowing ? 'Unfollow' : 'Follow'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                  style={styles.buttonPlusSuivre}
-                  onPress={() => plusSuivreUtilisateur(item.id)}
-              >
-                  <Text style={styles.createButtonText}>Ne plus suivre</Text>
-              </TouchableOpacity>
           </View>
         </View>
         
       </View>
     );
   };
+
+  if (loading) {
+    return <Text>Loading...</Text>;
+  }
 
   return (
     <View style={styles.container}>
@@ -238,7 +252,7 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: 8,
     paddingHorizontal: 16,
-    //backgroundColor: '#007BFF',
+    backgroundColor: '#007BFF',
     borderRadius: 8,
     marginLeft: 0,
     width: 150,
