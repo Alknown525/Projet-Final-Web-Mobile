@@ -20,10 +20,6 @@ const useData = () => {
           'Content-Type': 'application/json',
         },
       });
-      dispatch({
-        type: CHARGER_PUBLICATIONS,
-        payload: resultat.data,
-      })
     } catch (e) {
       console.log(e.message)
     }

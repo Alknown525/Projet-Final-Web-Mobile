@@ -57,13 +57,11 @@ const PublicationsScreen = () => {
 
   const handleFollowUnfollow = (userId, isFollowing) => {
     if (isFollowing) {
-      // Unfollow user
-      //setFollowingIds((prev) => prev.filter((id) => id !== userId));
       plusSuivreUtilisateur(userId);
+
     } else {
-      // Follow user
-      //setFollowingIds((prev) => [...prev, userId]);
       suivreUtilisateur(userId);
+
     }
   };
 
