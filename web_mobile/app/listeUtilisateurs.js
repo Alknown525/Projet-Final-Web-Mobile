@@ -12,6 +12,7 @@ const PublicationsScreen = () => {
   const {state, dispatch } = useStateValue()
   const [filter, setFilter] = useState('tout')
   const [listeUtilisateurs, setListeUtilisateurs] = useState([]);
+  const [listeSuivis, setListeSuivis] = useState([]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -34,12 +35,29 @@ const PublicationsScreen = () => {
   }, []);
 
   const getUtilisateurs = async () => {
-    const token = await AsyncStorage.getItem('token');
+    const token = await AsyncStorage.getItem('userToken');
     const response = await axios.get('http://localhost:5000/api/utilisateur', {
       headers: { Authorization: `Bearer ${token}` },
     });
     setListeUtilisateurs(response.data);
+
+    const response2 = await axios.get('http://localhost:5000/api/utilisateur/suivi', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setListeSuivis(response2.data);
   }
+
+  const handleFollowUnfollow = (userId, isFollowing) => {
+    if (isFollowing) {
+      // Unfollow user
+      //setFollowingIds((prev) => prev.filter((id) => id !== userId));
+      plusSuivreUtilisateur(userId);
+    } else {
+      // Follow user
+      //setFollowingIds((prev) => [...prev, userId]);
+      suivreUtilisateur(userId);
+    }
+  };
 
   const suivreUtilisateur = async (userId) => {
     try {
@@ -75,7 +93,6 @@ const PublicationsScreen = () => {
       }
   }
 
-  
   const plusSuivreUtilisateur = async (userId) => {
     try {
         const token = await AsyncStorage.getItem('userToken');
@@ -110,7 +127,6 @@ const PublicationsScreen = () => {
       }
   }
 
-
   if (state.loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -120,6 +136,44 @@ const PublicationsScreen = () => {
     );
   }
 
+  const renderItem = ({ item }) => {
+    const isFollowing = listeSuivis.includes(item.id); // Check if user is followed
+
+    return (
+        <View style={styles.item}>
+        <View style={styles.authorContainer}>
+          <Image
+            source={{ uri: item.image_profil }}
+            style={styles.profileImage}
+          />
+          <View style={styles.authorInfo}>
+            <Text style={styles.authorName}>{item.nom}</Text>
+          </View>
+          <View 
+              style={styles.filterContainer}
+              // BOUTONS SUIVRE ET NE PLUS SUIVRE
+              // AJOUTER IF ELSE
+          >
+              <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => handleFollowUnfollow(item.id, isFollowing)}
+                  color={isFollowing ? 'red' : 'blue'}
+              >
+                  <Text style={styles.createButtonText}>{isFollowing ? 'Unfollow' : 'Follow'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                  style={styles.buttonPlusSuivre}
+                  onPress={() => plusSuivreUtilisateur(item.id)}
+              >
+                  <Text style={styles.createButtonText}>Ne plus suivre</Text>
+              </TouchableOpacity>
+          </View>
+        </View>
+        
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -128,38 +182,7 @@ const PublicationsScreen = () => {
           style={styles.flatList}
           data={listeUtilisateurs}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.item}>
-              <View style={styles.authorContainer}>
-                <Image
-                  source={{ uri: item.image_profil }}
-                  style={styles.profileImage}
-                />
-                <View style={styles.authorInfo}>
-                  <Text style={styles.authorName}>{item.nom}</Text>
-                </View>
-                <View 
-                    style={styles.filterContainer}
-                    // BOUTONS SUIVRE ET NE PLUS SUIVRE
-                    // AJOUTER IF ELSE
-                >
-                    <TouchableOpacity
-                        style={styles.buttonSuivre}
-                        onPress={() => suivreUtilisateur(item.id)}
-                    >
-                        <Text style={styles.createButtonText}>Suivre</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.buttonPlusSuivre}
-                        onPress={() => plusSuivreUtilisateur(item.id)}
-                    >
-                        <Text style={styles.createButtonText}>Ne plus suivre</Text>
-                    </TouchableOpacity>
-                </View>
-              </View>
-              
-            </View>
-          )}
+          renderItem={renderItem}
           ListEmptyComponent={() => (
             <Text style={{ textAlign: 'center', marginTop: 20 }}>
               Aucun article n'a été trouvé.
@@ -220,7 +243,7 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: 8,
     paddingHorizontal: 16,
-    backgroundColor: '#007BFF',
+    //backgroundColor: '#007BFF',
     borderRadius: 8,
     marginLeft: 0,
     width: 150,

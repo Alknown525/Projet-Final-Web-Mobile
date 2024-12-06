@@ -136,7 +136,32 @@ def ne_plus_suivre_utilisateur(id):
 
     return jsonify({"message": f"Vous ne suivez plus {user_to_unfollow.nom}"}), 200
 
+@api_bp.route("/utilisateur/suivi", methods=["GET"])
+@jwt_required()
+def liste_suivis():
+    current_user_id = get_jwt_identity()
 
+    try:
+        print('start')
+        query_suivis = suivis.query.get(current_user_id)
+        print('query_suivis créé')
+
+        if not query_suivis:
+            return jsonify({"message": "Vous ne suivez personne"}), 404
+        
+        suivis_liste = []
+
+        for suivi in query_suivis:
+            suivis_liste.append({
+                "id": suivi.utilisateur_suivi
+            })
+        print('ajouté tout a la liste')
+
+        return jsonify(suivis_liste), 201
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"erreur": "Une erreur s'est produite"}), 500 
 
 @api_bp.route("/publications", methods=["GET"])
 @jwt_required()
