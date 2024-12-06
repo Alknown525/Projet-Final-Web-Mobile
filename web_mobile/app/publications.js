@@ -42,7 +42,6 @@ const PublicationsScreen = () => {
         payload: true,
       });
     });
-    
   }, []);
 
   const fetchPosts = async () => {
