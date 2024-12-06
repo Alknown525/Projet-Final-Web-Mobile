@@ -1,8 +1,9 @@
 import { Link, useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, View, Text, TouchableOpacity, FlatList, Image, ActivityIndicator, ScrollView } from 'react-native'
+import { StyleSheet, View, Text, TouchableOpacity, Button , FlatList, Image, ActivityIndicator, ScrollView } from 'react-native'
 import { useStateValue, StateProvider } from '../context/StateContext'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 
 const PublicationsScreen = () => {
@@ -10,6 +11,8 @@ const PublicationsScreen = () => {
   const [userId, setUserId] = useState(null);
   const {state, dispatch } = useStateValue()
   const [filter, setFilter] = useState('tout')
+  const [posts, setPosts] = useState([]);
+  const [newPostAvailable, setNewPostAvailable] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -28,7 +31,16 @@ const PublicationsScreen = () => {
     };
 
     checkAuth();
+    fetchPosts();
   }, []);
+
+  const fetchPosts = async () => {
+    const token = await AsyncStorage.getItem('token');
+    const response = await axios.get('http://localhost:5000/api/publications', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setPosts(response.data);
+  };
 
   const filteredPublications = state.publications.filter((item) => {
     if (filter === 'moi') {
@@ -51,7 +63,10 @@ const PublicationsScreen = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      {newPostAvailable && (
+        <Button title="Nouveaux messages disponibles. Actualiser" onPress={fetchPosts} />
+      )}
+      <ScrollView style={styles.container2} contentContainerStyle={styles.contentContainer}>
         <ScrollView horizontal style={styles.filterContainer}>
           <TouchableOpacity
             style={[styles.filterButton, filter === 'tout' && styles.selectedFilter]}
@@ -129,6 +144,9 @@ const PublicationsScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  container2: {
     flex: 1,
     marginTop: 10,
   },
