@@ -18,9 +18,31 @@ export default function ConnexionScreen({ navigation }) {
       await AsyncStorage.setItem('userToken', response.data.jeton);
       await AsyncStorage.setItem('username', JSON.stringify(response.data.username));
       await AsyncStorage.setItem('userId', response.data.userId);
+      try {
+        const token = await AsyncStorage.getItem('userToken');
+        if (!token) return;
+  
+        const response = await axios.get('http://127.0.0.1:5000/api/publications', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        if (response.data.status === 'OK') {
+          dispatch({
+            type: 'CHARGER_PUBLICATIONS',
+            payload: response.data.publications,
+          });
+          
+          setPosts(response.data.publications);
+          setNewPostAvailable(false); 
+          router.replace('/publications');
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des publications :', error.message);
+      };
       router.replace('/publications');
     } catch (e) {
-      //alert('Erreur de connexion');
       alert('Courriel ou mot de passe invalide');
     }
   };
