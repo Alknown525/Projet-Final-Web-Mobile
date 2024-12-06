@@ -65,6 +65,8 @@ const PublicationsScreen = () => {
         });
         
         setPublications(response.data.publications);
+        console.log(response.data.publications)
+        console.log(publications)
       }
     } catch (error) {
       console.error('Erreur lors du chargement des publications :', error.message);

@@ -288,7 +288,7 @@ def get_following_users():
     following_users = []
 
     for utilisateur in utilisateurs:
-        if any(follower['id'] == current_user_id for follower in utilisateur['followers']):
+        if any(follower.id == current_user_id for follower in utilisateur.followers):
             following_users.append(utilisateur.id)
 
     return jsonify(following_users)
