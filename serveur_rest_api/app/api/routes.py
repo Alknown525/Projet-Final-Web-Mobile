@@ -1,13 +1,18 @@
 from flask import current_app as app, jsonify, request, send_from_directory
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, JWTManager
 from app.extensions import db
-from werkzeug.utils import secure_filename
+from app import socketio
+from flask_socketio import emit
 
 # Activer la ligne c-dessous lorsque le modele est cree
 from app.modeles import Publication, Utilisateur, suivis
 from app.api import api_bp
 import os
 
+@socketio.on('nouvelle_publication')
+def handle_new_post(data):
+    print("Nouvelle publication reçue :", data)
+    emit('nouvelle_publication', data, broadcast=True)
 
 # Creer le login (session)
 @api_bp.route("/jeton", methods=["POST"])
@@ -224,6 +229,12 @@ def creer_publication():
 
         db.session.add(publication)
         db.session.commit()
+
+        socketio.emit('nouvelle_publication', {
+            'titre': titre,
+            'description': description,
+            'image': image
+        })
 
         return jsonify({
             "status": "OK",

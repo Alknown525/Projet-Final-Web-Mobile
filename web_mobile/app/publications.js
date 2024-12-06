@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import io from 'socket.io-client';
 
-const socket = io('http://localhost:3000');
+const socket = io('http://127.0.0.1:5000');
 
 const PublicationsScreen = () => {
   const router = useRouter()
@@ -32,26 +32,42 @@ const PublicationsScreen = () => {
         console.error('Error checking authentication:', e.message);
       }
     };
-
     checkAuth();
-    //fetchPosts();
-    socket.on('new_post', () => {
+
+    socket.on('nouvelle_publication', (data) => {
+      console.log('Nouvelle publication reçue:', data);
       setNewPostAvailable(true);
     });
 
     return () => {
-      socket.off('new_post');
+      socket.off('nouvelle_publication');
     };
   }, []);
-/*
+
   const fetchPosts = async () => {
-    const token = await AsyncStorage.getItem('userToken');
-    const response = await axios.get('http://localhost:5000/api/publications', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setPosts(response.data);
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      if (!token) return;
+
+      const response = await axios.get('http://127.0.0.1:5000/api/publications', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.status === 'OK') {
+        dispatch({
+          type: 'SET_PUBLICATIONS',
+          payload: response.data.publications,
+        });
+
+        setNewPostAvailable(false);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des publications :', error.message);
+    }
   };
-*/
+
   const filteredPublications = state.publications.filter((item) => {
     if (filter === 'moi') {
       return item.utilisateur.id === userId;
