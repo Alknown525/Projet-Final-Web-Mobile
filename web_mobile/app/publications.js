@@ -14,11 +14,9 @@ const PublicationsScreen = () => {
   const [userId, setUserId] = useState(null);
   const { state, dispatch } = useStateValue()
   const [filter, setFilter] = useState('tout')
-  const [publications, setPublications] = useState([]);
   const { newPostAvailable } = state;
 
   useEffect(() => {
-    console.log('New post available:', newPostAvailable);
     const checkAuth = async () => {
       try {
         const userToken = await AsyncStorage.getItem('userToken');
@@ -34,6 +32,7 @@ const PublicationsScreen = () => {
       }
     };
     checkAuth();
+    fetchPosts();
 
     socket.on('nouvelle_publication', (data) => {
       console.log('Nouvelle publication reçue:', data);
@@ -42,7 +41,8 @@ const PublicationsScreen = () => {
         payload: true,
       });
     });
-  }, []);
+    
+  }, [state.loading]);
 
   const fetchPosts = async () => {
     try {
@@ -54,18 +54,13 @@ const PublicationsScreen = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-        
+      console.log(response)
       if (response.data.status === 'OK') {
-        router.replace('/publications');
         console.log("OK")
         dispatch({
           type: 'CHARGER_PUBLICATIONS',
           payload: response.data.publications,
         });
-        
-        setPublications(response.data.publications);
-        console.log(response.data.publications)
-        console.log(publications)
       }
     } catch (error) {
       console.error('Erreur lors du chargement des publications :', error.message);

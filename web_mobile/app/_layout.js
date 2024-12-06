@@ -96,7 +96,7 @@ const Layout = () => {
           tabBarStyle: { display: 'none' },
           headerRight: () => (
             <View style={styles.headerButtons}>
-              <TouchableOpacity onPress={() => router.replace('/publications')} style={styles.logoutButton}>
+              <TouchableOpacity onPress={() => router.replace('/publications') } style={styles.logoutButton}>
                 <Text style={styles.buttonBlue}>Publications</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={logout} style={styles.logoutButton}>
