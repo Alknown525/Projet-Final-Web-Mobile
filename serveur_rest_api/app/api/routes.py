@@ -275,3 +275,21 @@ def creer_publication():
             "details": str(e)
         }), 500
     
+
+@api_bp.route('/utilisateur/following', methods=['GET'])
+@jwt_required()
+def get_following_users():
+    current_user_id = get_jwt_identity()
+    utilisateurs = Utilisateur.query.all()
+
+    if not current_user_id:
+        return jsonify({"error": "User ID is required"}), 400
+
+    following_users = []
+
+    for utilisateur in utilisateurs:
+        if any(follower['id'] == current_user_id for follower in utilisateur['followers']):
+            following_users.append(utilisateur.id)
+
+    return jsonify(following_users)
+    

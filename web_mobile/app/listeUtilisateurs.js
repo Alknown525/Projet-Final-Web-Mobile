@@ -40,11 +40,6 @@ const PublicationsScreen = () => {
       headers: { Authorization: `Bearer ${token}` },
     });
     setListeUtilisateurs(response.data);
-
-    const response2 = await axios.get('http://localhost:5000/api/utilisateur/suivi', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setListeSuivis(response2.data);
   }
 
   const handleFollowUnfollow = (userId, isFollowing) => {
